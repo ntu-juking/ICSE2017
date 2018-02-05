@@ -37,9 +37,9 @@ import csv
 from collections import namedtuple
 from pygithub3 import Github
 
-username = 'username'
-password = 'password'
-gh = Github(username, password)
+username = 'ju.xl@ntu.edu.cn'
+password = '9412129juk'
+gh = Github(username, password) 
 
 def get_basic(issue):
     
@@ -254,7 +254,7 @@ def get_subjectIssueInfo(subjectUser, subjectProjectName, issue_number, root_url
             itype = "pr"
         else:
             itype = "issue"
-#        print (itype)
+        print (itype)
             
         print ("get basic information......")    
         sb = get_basic(issue)
@@ -379,7 +379,6 @@ def get_refIssueInfo(subjectProjectName, refIssue, subIssue):
     return (b_result, r_result)
      
 def get_all(subjectUser, subjectProjectName, labelName):
-    
     b_headers = ['issue', 'id', 'reporter', 'closed_by', 'created_at', 'updated_at', 'closed_at', 'state', 
                  'assignee', 'milestone', 'comments', 'label_name', 'url', 'title', 'body']
     
@@ -429,7 +428,7 @@ def get_all(subjectUser, subjectProjectName, labelName):
         label =[]
         label.append(repo.get_label(labelName))
         issues = repo.get_issues(state='closed', labels=label)
-#    print ("number of closed bugs: ", issues.totalCount())
+    # print ("number of closed bugs: ", issues.totalCount())
     root_url = 'https://github.com/' + subjectUser + '/' + subjectProjectName + '/issues/'
     
     issue_count = 0
@@ -467,7 +466,7 @@ def get_all(subjectUser, subjectProjectName, labelName):
     return (issue_count, ri_count)
 
 def getProjectIssueWithRelated(urlFile):
-    s = open('/summary.csv','a' ,newline='')
+    s = open('./summary.csv','a' ,newline='')
     s_headers = ['project', 'organization', 'url', 'label_name','closed','bugs']
     s_csv = csv.DictWriter(s,s_headers)
     s_csv.writeheader()
@@ -498,7 +497,7 @@ def getProjectIssueWithRelated(urlFile):
             
 
 
-getProjectIssueWithRelated('/url.csv')
+getProjectIssueWithRelated('./url.csv')
             
             
              
