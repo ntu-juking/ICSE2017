@@ -1,0 +1,2 @@
+7051-->jobovy/galpy/pull/270: 'NoneType' object has no attribute 'get_text'	
+6838-->numpy/numpy/pull/10104: 'NoneType' object has no attribute 'get_text'	

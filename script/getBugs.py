@@ -90,6 +90,7 @@ def get_basic(issue):
 def get_html(url):
     response = requests.get(url)
     soup = bs4.BeautifulSoup(response.text, "html.parser")
+
     return (soup)
 
 def get_related(content,user,projectName):
@@ -159,10 +160,14 @@ def get_comments(issue):
 
 
 def get_participants(soup):
-    participants = soup.select('div[id="partial-users-participants"] h3[class="discussion-sidebar-heading"]')
+    # participants = soup.select('div[id="partial-users-participants"] h3[class="discussion-sidebar-heading"]') #old
+    participants = soup.select('div[id="partial-users-participants"] div[class^="discussion-sidebar-heading"]')
+    
     npart = re.findall(r'(\w*[0-9]+)\w*',participants[0].get_text())[0]
     names = []
-    parts = soup.select('div[class="participation-avatars"] a[class$="tooltipped-n"]')
+    # parts = soup.select('div[class="participation-avatars"] a[class$="tooltipped-n"]')  #old
+    parts = soup.select('div[class="participation-avatars"] a[class$="participant-avatar tooltipped tooltipped-n"]')
+
     for part in parts:
         names.append(part['aria-label'])
     return (npart, names)    
@@ -224,7 +229,7 @@ def get_pr(soup, projectName, itype):
     return (res)
 
 def get_refs(soup, projectName):
-
+     # we also need to understand the usage of soup.select(...) 
 #    res = soup.select('span[class="issue-num"]') 
     res = soup.select('h4[class="discussion-item-ref-title"] a[class="title-link"]')
     
@@ -235,12 +240,15 @@ def get_refs(soup, projectName):
             within_refs.append(r['href'])
         else:
             cross_refs.append(r['href'])
-         
-    commits = soup.select('td[class="commit-meta"] a[class="commit-id]')
+    # print("OK")   here is ok!
+
+    commits = soup.select('td[class="commit-meta"] a[class="commit-id"]')
+    print(commits, "******777778")  # here cause error
+
     crefs = []
     for c in commits:
         crefs.append(c['href'])
-    
+    # print(within_refs, cross_refs, crefs, "******888888")
     return (within_refs, cross_refs, crefs)
 
     
@@ -250,6 +258,7 @@ def get_subjectIssueInfo(subjectUser, subjectProjectName, issue_number, root_url
     try:
         soup = get_html(index_url)
         title = soup.title.get_text()
+
         if "Pull Request" in title:
             itype = "pr"
         else:
@@ -260,13 +269,15 @@ def get_subjectIssueInfo(subjectUser, subjectProjectName, issue_number, root_url
         sb = get_basic(issue)
         sb.update({'issue':issue_number})
         
-        print ("get related......")                
+        print ("get related......", issue)                
         ctimes, cauthors, comments, ncomments = get_comments(issue)
         ctimes.insert(0, sb['created_at'])
         cauthors.insert(0, sb['reporter'])
         comments.insert(0, sb['body'])
         ncomments  = ncomments + 1
-    
+
+        # print(comments)
+
 #        print(range(len(ctimes)))
         sr_result=[]
         for j in range(len(comments)):
@@ -290,7 +301,9 @@ def get_subjectIssueInfo(subjectUser, subjectProjectName, issue_number, root_url
         
         print ("get refs......")
         within_refs, cross_refs, commit_refs = get_refs(soup, subjectProjectName)
+        # print(within_refs, cross_refs, commit_refs, "*******")
         ref_result = {'number':issue_number, 'within_refs':within_refs, 'cross_refs':cross_refs, 'commit_refs':commit_refs}
+        
         for cr in cross_refs:
             cr = cr.replace('/issues/','#')[1:]
             print('************', cr)
@@ -298,12 +311,13 @@ def get_subjectIssueInfo(subjectUser, subjectProjectName, issue_number, root_url
              
         print ("get close related......") 
         author, close, time, ctype = get_close(soup, itype)
-        print (author)
+        # print (author)
         pr = []
         pr = get_pr(soup, subjectProjectName, itype)
         
         print("get participants......")
         npart, pnames = get_participants(soup)
+        # print(npart, pnames," ****** ")  # here is ok!
         sp_result = {'number':issue_number, 'itype':itype, 'close_author':author, 'close_time':time, 
                     'close':close, 'close_type':ctype, 'related_pr':pr, '#comment':ncomments,
                     '#participants':npart, 'part_names':pnames} 
@@ -420,13 +434,13 @@ def get_all(subjectUser, subjectProjectName, labelName):
     #===================get bugs of subject project===========================================================
     
     repo = gh.get_repo(subjectUser+'/'+subjectProjectName)
-    
     if labelName == 'No':
         print('yes!')
         issues = issues = repo.get_issues(state='closed')
     else:
         label =[]
-        label.append(repo.get_label(labelName))
+        tempx = repo.get_label(labelName)
+        label.append(tempx)
         issues = repo.get_issues(state='closed', labels=label)
     # print ("number of closed bugs: ", issues.totalCount())
     root_url = 'https://github.com/' + subjectUser + '/' + subjectProjectName + '/issues/'
@@ -498,8 +512,3 @@ def getProjectIssueWithRelated(urlFile):
 
 
 getProjectIssueWithRelated('./url.csv')
-            
-            
-             
- 
-        
